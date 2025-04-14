@@ -10,11 +10,41 @@ const append = (message, position) => {
   messageContainer.append(messageElement);
 };
 
-form.addEventListener("submit", (e) => {
+// 🎯 Handle form submission
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const message = messageInput.value;
-  append(`You: ${message}`, `right`);
+  const message = messageInput.value.trim();
+  if (!message) return;
+
+  append(`You: ${message}`, "right");
   messageInput.value = "";
 
-  // Backend communication code
+  try {
+    const response = await fetch("http://localhost:3000/query", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ query: message })
+    });
+
+    const result = await response.json();
+
+    // 👀 Format output
+    let display;
+    if (Array.isArray(result)) {
+      display = JSON.stringify(result, null, 2);
+    } else if (result.message) {
+      display = `✅ ${result.message}`;
+      if (result.id) display += `\nID: ${result.id}`;
+    } else if (result.error) {
+      display = `❌ Error: ${result.error}`;
+    } else {
+      display = JSON.stringify(result, null, 2);
+    }
+
+    append(display, "left");
+  } catch (error) {
+    append(`❌ Network Error: ${error.message}`, "left");
+  }
 });
