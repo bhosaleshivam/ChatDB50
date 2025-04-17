@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+# cache
+.vite/
+
+# backend
+../backend/__pycache__/
+*.py[cod]
