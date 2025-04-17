@@ -1,15 +1,16 @@
-import ast
+import json
+import traceback
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import pymysql
 from pymongo import MongoClient
-import json
+from bson.json_util import dumps
 import re
 
 app = Flask(__name__)
 CORS(app)
 
-# MySQL connection
+# ✅ MySQL connection
 mysql_conn = pymysql.connect(
     host='localhost',
     user='root',
@@ -19,9 +20,10 @@ mysql_conn = pymysql.connect(
     autocommit=True
 )
 
-# MongoDB connection
-mongo_client = MongoClient('mongodb://localhost:27017/')
-mongo_db = mongo_client['your_mongodb_db']
+# ✅ MongoDB Atlas connection
+mongo_uri = "mongodb+srv://anishnehete:dsci551@cluster1.ufmq4xd.mongodb.net/?retryWrites=true&w=majority"
+mongo_client = MongoClient(mongo_uri)
+mongo_db = mongo_client['sample_mflix']  # Use your DB name
 
 @app.route('/query', methods=['POST'])
 def handle_query():
@@ -29,12 +31,12 @@ def handle_query():
     user_query = data.get('query', '').strip()
     
     try:
+
         with mysql_conn.cursor() as cursor:
             cursor.execute(user_query)
             results = cursor.fetchall()
             return jsonify(results)
 
-        # ✅ Handle MySQL
         if user_query.lower().startswith('mysql'):
             sql = user_query[len('mysql'):].strip()
             with mysql_conn.cursor() as cursor:
@@ -48,7 +50,7 @@ def handle_query():
                         "affected_rows": cursor.rowcount
                     })
 
-        # ✅ Handle MongoDB
+        # ✅ Handle MongoDB queries
         elif user_query.lower().startswith('mongo'):
             raw = user_query[len('mongo'):].strip()
             if raw.startswith('db.'):
@@ -59,17 +61,25 @@ def handle_query():
                 collection_name, command, args_str = match.groups()
                 collection = mongo_db[collection_name]
 
+                # ✅ Use JSON parser for JS-style syntax
                 try:
-                    args = ast.literal_eval(f"[{args_str}]")
-                except Exception as e:
-                    return jsonify({"error": f"Failed to parse arguments: {str(e)}"}), 400
+                    args = json.loads(f"[{args_str}]")
+                except json.JSONDecodeError as e:
+                    return jsonify({"error": f"Failed to parse JSON arguments: {str(e)}"}), 400
 
+                # ✅ Handle supported commands
                 if command == "find":
                     cursor = collection.find(*args)
-                    return jsonify(list(cursor))
+                    return app.response_class(response=dumps(cursor), mimetype='application/json')
+
+                elif command == "aggregate":
+                    cursor = collection.aggregate(*args)
+                    return app.response_class(response=dumps(cursor), mimetype='application/json')
+
                 elif command == "insertOne":
                     result = collection.insert_one(*args)
                     return jsonify({"message": "Inserted", "id": str(result.inserted_id)})
+
                 elif command == "updateOne":
                     result = collection.update_one(*args)
                     return jsonify({
@@ -77,12 +87,14 @@ def handle_query():
                         "matched": result.matched_count,
                         "modified": result.modified_count
                     })
+
                 elif command == "deleteOne":
                     result = collection.delete_one(*args)
                     return jsonify({
                         "message": "Deleted",
                         "deleted_count": result.deleted_count
                     })
+
                 else:
                     return jsonify({"error": f"Unsupported MongoDB command: {command}"}), 400
 
@@ -93,6 +105,7 @@ def handle_query():
             return jsonify({"error": "Query must start with 'mysql' or 'mongo'."}), 400
 
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @app.route('/')
