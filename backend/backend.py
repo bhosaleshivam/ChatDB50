@@ -12,9 +12,9 @@ CORS(app)
 # MySQL connection
 mysql_conn = pymysql.connect(
     host='localhost',
-    user='chatuser',
-    password='password123',
-    database='world',
+    user='root',
+    password='MySQL@1234',
+    database='demo',
     cursorclass=pymysql.cursors.DictCursor,
     autocommit=True
 )
@@ -27,65 +27,72 @@ mongo_db = mongo_client['your_mongodb_db']
 def handle_query():
     data = request.get_json()
     user_query = data.get('query', '').strip()
-
+    
     try:
-        # ✅ Handle MySQL
-        if user_query.lower().startswith('mysql'):
-            sql = user_query[len('mysql'):].strip()
-            with mysql_conn.cursor() as cursor:
-                cursor.execute(sql)
-                if cursor.description:
-                    result = cursor.fetchall()
-                    return jsonify(result)
-                else:
-                    return jsonify({
-                        "message": "Query executed successfully.",
-                        "affected_rows": cursor.rowcount
-                    })
+        with mysql_conn.cursor() as cursor:
+            cursor.execute(user_query)
+            results = cursor.fetchall()
+            return jsonify(results)
 
-        # ✅ Handle MongoDB
-        elif user_query.lower().startswith('mongo'):
-            raw = user_query[len('mongo'):].strip()
-            if raw.startswith('db.'):
-                match = re.match(r'db\.(\w+)\.(\w+)\((.+)\)', raw)
-                if not match:
-                    return jsonify({"error": "Invalid MongoDB command format."}), 400
 
-                collection_name, command, args_str = match.groups()
-                collection = mongo_db[collection_name]
+    # try:
+    #     # ✅ Handle MySQL
+    #     if user_query.lower().startswith('mysql'):
+    #         sql = user_query[len('mysql'):].strip()
+    #         with mysql_conn.cursor() as cursor:
+    #             cursor.execute(sql)
+    #             if cursor.description:
+    #                 result = cursor.fetchall()
+    #                 return jsonify(result)
+    #             else:
+    #                 return jsonify({
+    #                     "message": "Query executed successfully.",
+    #                     "affected_rows": cursor.rowcount
+    #                 })
 
-                try:
-                    args = ast.literal_eval(f"[{args_str}]")
-                except Exception as e:
-                    return jsonify({"error": f"Failed to parse arguments: {str(e)}"}), 400
+    #     # ✅ Handle MongoDB
+    #     elif user_query.lower().startswith('mongo'):
+    #         raw = user_query[len('mongo'):].strip()
+    #         if raw.startswith('db.'):
+    #             match = re.match(r'db\.(\w+)\.(\w+)\((.+)\)', raw)
+    #             if not match:
+    #                 return jsonify({"error": "Invalid MongoDB command format."}), 400
 
-                if command == "find":
-                    cursor = collection.find(*args)
-                    return jsonify(list(cursor))
-                elif command == "insertOne":
-                    result = collection.insert_one(*args)
-                    return jsonify({"message": "Inserted", "id": str(result.inserted_id)})
-                elif command == "updateOne":
-                    result = collection.update_one(*args)
-                    return jsonify({
-                        "message": "Updated",
-                        "matched": result.matched_count,
-                        "modified": result.modified_count
-                    })
-                elif command == "deleteOne":
-                    result = collection.delete_one(*args)
-                    return jsonify({
-                        "message": "Deleted",
-                        "deleted_count": result.deleted_count
-                    })
-                else:
-                    return jsonify({"error": f"Unsupported MongoDB command: {command}"}), 400
+    #             collection_name, command, args_str = match.groups()
+    #             collection = mongo_db[collection_name]
 
-            else:
-                return jsonify({"error": "Use format: mongo db.collection.command(...)"}), 400
+    #             try:
+    #                 args = ast.literal_eval(f"[{args_str}]")
+    #             except Exception as e:
+    #                 return jsonify({"error": f"Failed to parse arguments: {str(e)}"}), 400
 
-        else:
-            return jsonify({"error": "Query must start with 'mysql' or 'mongo'."}), 400
+    #             if command == "find":
+    #                 cursor = collection.find(*args)
+    #                 return jsonify(list(cursor))
+    #             elif command == "insertOne":
+    #                 result = collection.insert_one(*args)
+    #                 return jsonify({"message": "Inserted", "id": str(result.inserted_id)})
+    #             elif command == "updateOne":
+    #                 result = collection.update_one(*args)
+    #                 return jsonify({
+    #                     "message": "Updated",
+    #                     "matched": result.matched_count,
+    #                     "modified": result.modified_count
+    #                 })
+    #             elif command == "deleteOne":
+    #                 result = collection.delete_one(*args)
+    #                 return jsonify({
+    #                     "message": "Deleted",
+    #                     "deleted_count": result.deleted_count
+    #                 })
+    #             else:
+    #                 return jsonify({"error": f"Unsupported MongoDB command: {command}"}), 400
+
+    #         else:
+    #             return jsonify({"error": "Use format: mongo db.collection.command(...)"}), 400
+
+    #     else:
+    #         return jsonify({"error": "Query must start with 'mysql' or 'mongo'."}), 400
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

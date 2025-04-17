@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from "react";
-import { MessageBubble, MessageType } from "./MessageBubble";
-import { ChatInput } from "./ChatInput";
 import { Separator } from "../ui/separator";
+import { ChatInput } from "./ChatInput";
+import { MessageBubble, MessageType } from "./MessageBubble";
+import { useState, useRef, useEffect } from "react";
+import { queryLLM } from "./queryLLM";
 
 const initialMessages: MessageType[] = [
   {
@@ -25,7 +26,7 @@ export function ChatInterface() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = async (content: string) => {
     // Add user message
     const userMessage: MessageType = {
       id: Date.now().toString(),
@@ -33,22 +34,74 @@ export function ChatInterface() {
       sender: "user",
       timestamp: new Date(),
     };
-    
+
     setMessages((prev) => [...prev, userMessage]);
     setLoading(true);
-    
+
+    const aiMessage: MessageType = {
+      id: Date.now().toString(),
+      content: "Generating your query...",
+      sender: "ai",
+      timestamp: new Date(),
+    };
+
+    setTimeout(async () => {
+      setMessages((prev) => [...prev, aiMessage]);
+    }, 1000);
+
     // Simulate AI response after a delay
-    setTimeout(() => {
+    setTimeout(async () => {
+      const aiContent = await handleQuery(content); // getAIResponse(content)
       const aiMessage: MessageType = {
         id: (Date.now() + 1).toString(),
-        content: getAIResponse(content),
+        content: aiContent,
         sender: "ai",
         timestamp: new Date(),
       };
-      
+
       setMessages((prev) => [...prev, aiMessage]);
       setLoading(false);
-    }, 1000);
+    }, 3000);
+  };
+
+  const executeQuery = async (queryMessage: string): Promise<any> => {
+    try {
+      const response = await fetch("http://127.0.0.1:3000/query", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query: queryMessage }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+      console.log("Response from backend:", data);
+      return data;
+    } catch (error) {
+      console.error("Fetch error:", error);
+      return { error: String(error) };
+    }
+  };
+
+  const handleQuery = async (queryMessage: string): Promise<string> => {
+    const generatedQuery = await queryLLM(queryMessage);
+
+    const aiMessage: MessageType = {
+      id: Date.now().toString(),
+      content: generatedQuery,
+      sender: "ai",
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, aiMessage]);
+
+    const result = await executeQuery(generatedQuery);
+    console.log(result);
+    return typeof result === "string" ? result : JSON.stringify(result);
   };
 
   // Simple response generator - would be replaced with actual AI in a real app
@@ -61,7 +114,7 @@ export function ChatInterface() {
       "I'm here to help with any questions you might have.",
       "That's a great point you've raised.",
     ];
-    
+
     return responses[Math.floor(Math.random() * responses.length)];
   };
 
@@ -73,12 +126,12 @@ export function ChatInterface() {
           {new Date().toLocaleDateString()}
         </span>
       </div>
-      
+
       <div className="flex-1 overflow-y-auto p-4">
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}
-        
+
         {loading && (
           <div className="flex justify-start mb-4 animate-pulse">
             <div className="bg-chat-ai-bubble px-4 py-2 rounded-2xl rounded-tl-none">
@@ -86,10 +139,10 @@ export function ChatInterface() {
             </div>
           </div>
         )}
-        
+
         <div ref={messagesEndRef} />
       </div>
-      
+
       <Separator />
       <ChatInput onSendMessage={handleSendMessage} disabled={loading} />
     </div>
