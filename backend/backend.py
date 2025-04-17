@@ -13,9 +13,9 @@ CORS(app)
 # ✅ MySQL connection
 mysql_conn = pymysql.connect(
     host='localhost',
-    user='chatuser',
-    password='password123',
-    database='world',
+    user='root',
+    password='MySQL@1234',
+    database='demo',
     cursorclass=pymysql.cursors.DictCursor,
     autocommit=True
 )
@@ -29,9 +29,14 @@ mongo_db = mongo_client['sample_mflix']  # Use your DB name
 def handle_query():
     data = request.get_json()
     user_query = data.get('query', '').strip()
-
+    
     try:
-        # ✅ Handle MySQL queries
+
+        with mysql_conn.cursor() as cursor:
+            cursor.execute(user_query)
+            results = cursor.fetchall()
+            return jsonify(results)
+
         if user_query.lower().startswith('mysql'):
             sql = user_query[len('mysql'):].strip()
             with mysql_conn.cursor() as cursor:
