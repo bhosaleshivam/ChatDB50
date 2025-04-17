@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageBubble, MessageType } from "./MessageBubble";
 import { ChatInput } from "./ChatInput";
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "../ui/separator";
 
 const initialMessages: MessageType[] = [
   {
