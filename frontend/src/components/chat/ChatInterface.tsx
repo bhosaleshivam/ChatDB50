@@ -109,11 +109,11 @@ export function ChatInterface() {
     let result;
     if (stringContainsSQL(queryMessage)) {
       result = await querySQLExecuter(generatedQuery);
+      return jsonToTableString(result.data);
     } else {
       result = await queryNoSQLExecuter(generatedQuery);
+      return JSON.stringify(result);
     }
-
-    return typeof result === "string" ? result : jsonToTableString(result.data);
   };
 
   return (

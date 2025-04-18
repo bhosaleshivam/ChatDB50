@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import pymysql
 from pymongo import MongoClient
-from bson.json_util import dumps
+from bson.json_util import dumps, loads
 import re
 
 app = Flask(__name__)
@@ -42,75 +42,144 @@ def handle_query_mysql():
 
 @app.route('/queryNoSQL', methods=['POST'])
 def handle_query():
-    data = request.get_json()
-    user_query = data.get('query', '').strip()
-    
     try:
-        # ✅ Handle MongoDB queries
-        if user_query.lower().startswith('mongo'):
-            raw = user_query[len('mongo'):].strip()
-            if raw.startswith('db.'):
-                match = re.match(r'db\.(\w+)\.(\w+)\((.+)\)', raw)
-                if not match:
-                    return jsonify({"error": "Invalid MongoDB command format."}), 400
+        data = request.get_json()
+        user_query = data.get('query')
+        user_query = mongo_shell_to_json(user_query)
 
-                collection_name, command, args_str = match.groups()
-                collection = mongo_db[collection_name]
+        if not user_query:
+            return jsonify({'error': 'Missing query'}), 400
 
-                # ✅ Use JSON parser for JS-style syntax
-                try:
-                    args = json.loads(f"[{args_str}]")
-                except json.JSONDecodeError as e:
-                    return jsonify({"error": f"Failed to parse JSON arguments: {str(e)}"}), 400
+        # Extract collection name
+        collection_match = re.search(r'db\.([a-zA-Z0-9_]+)', user_query)
+        if not collection_match:
+            if "db.getCollectionNames()" in user_query:
+                return jsonify(sorted(mongo_db.list_collection_names()))
+            return jsonify({'error': 'Could not parse collection name'}), 400
 
-                # ✅ Handle supported commands
-                if command == "find":
-                    cursor = collection.find(*args)
-                    return app.response_class(response=dumps(cursor), mimetype='application/json')
+        collection_name = collection_match.group(1)
+        collection = mongo_db[collection_name]
 
-                elif command == "aggregate":
-                    cursor = collection.aggregate(*args)
-                    return app.response_class(response=dumps(cursor), mimetype='application/json')
+        # Remove 'db.collection.' from the query
+        raw_command = re.sub(r'^db\.[a-zA-Z0-9_]+\.', '', user_query)
 
-                elif command == "insertOne":
-                    result = collection.insert_one(*args)
-                    return jsonify({"message": "Inserted", "id": str(result.inserted_id)})
+        # Direct command parsing
+        
+        if 'db.getCollectionNames()' in raw_command:
+            collections = mongo_db.list_collection_names()
+            return jsonify(collections)
+        
+        # Extract the find(...) part
+        find_match = re.search(r'find\((.*?)\)', raw_command, re.DOTALL)
+        if find_match:
+            args = find_match.group(1).strip()
 
-                elif command == "updateOne":
-                    result = collection.update_one(*args)
-                    return jsonify({
-                        "message": "Updated",
-                        "matched": result.matched_count,
-                        "modified": result.modified_count
-                    })
+            parts = split_args(args) if args else []
+            query = loads(parts[0]) if len(parts) >= 1 and parts[0] else {}
+            projection = loads(parts[1]) if len(parts) >= 2 and parts[1] else None
 
-                elif command == "deleteOne":
-                    result = collection.delete_one(*args)
-                    return jsonify({
-                        "message": "Deleted",
-                        "deleted_count": result.deleted_count
-                    })
+            cursor = collection.find(query, projection)
 
-                else:
-                    return jsonify({"error": f"Unsupported MongoDB command: {command}"}), 400
+            # Handle .limit(N) chaining
+            limit_match = re.search(r'\.limit\((\d+)\)', raw_command)
+            if limit_match:
+                limit = int(limit_match.group(1))
+                cursor = cursor.limit(limit)
 
-            else:
-                return jsonify({"error": "Use format: mongo db.collection.command(...)"}), 400
+            return dumps(list(cursor))
+
+        elif raw_command.startswith("findOne("):
+            match = re.search(r'findOne\((.*)\)', raw_command)
+            args = match.group(1)
+            query = loads(args) if args else {}
+            result = collection.find_one(query)
+            return dumps(result)
+
+        elif raw_command.startswith("aggregate("):
+            match = re.search(r'aggregate\((.*)\)', raw_command, re.DOTALL)
+            pipeline = loads(match.group(1))
+            result = collection.aggregate(pipeline)
+            return dumps(list(result))
+
+        elif raw_command.startswith("insertOne("):
+            match = re.search(r'insertOne\((.*)\)', raw_command, re.DOTALL)
+            doc = loads(match.group(1))
+            result = collection.insert_one(doc)
+            return jsonify({'inserted_id': str(result.inserted_id)})
+
+        elif raw_command.startswith("insertMany("):
+            match = re.search(r'insertMany\((.*)\)', raw_command, re.DOTALL)
+            docs = loads(match.group(1))
+            result = collection.insert_many(docs)
+            return jsonify({'inserted_ids': [str(i) for i in result.inserted_ids]})
+
+        elif raw_command.startswith("updateOne("):
+            args = extract_update_args(raw_command, "updateOne")
+            result = collection.update_one(*args)
+            return jsonify({'matched_count': result.matched_count, 'modified_count': result.modified_count})
+
+        elif raw_command.startswith("updateMany("):
+            args = extract_update_args(raw_command, "updateMany")
+            result = collection.update_many(*args)
+            return jsonify({'matched_count': result.matched_count, 'modified_count': result.modified_count})
+
+        elif raw_command.startswith("deleteOne("):
+            match = re.search(r'deleteOne\((.*)\)', raw_command, re.DOTALL)
+            query = loads(match.group(1))
+            result = collection.delete_one(query)
+            return jsonify({'deleted_count': result.deleted_count})
 
         else:
-            return jsonify({"error": "Query must start with 'mysql' or 'mongo'."}), 400
+            return jsonify({'error': 'Unsupported operation'}), 400
 
     except Exception as e:
         traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
-@app.route('/')
-def serve_index():
-    return send_from_directory('.', 'index.html')
 
-@app.route('/<path:path>')
-def serve_static(path):
-    return send_from_directory('.', path)
+def split_args(arg_str):
+    stack = []
+    current = ''
+    args = []
+
+    for char in arg_str:
+        if char == ',' and not stack:
+            args.append(current.strip())
+            current = ''
+        else:
+            if char in ['{', '[', '(']:
+                stack.append(char)
+            elif char in ['}', ']', ')']:
+                if stack:
+                    stack.pop()
+            current += char
+
+    if current:
+        args.append(current.strip())
+
+    return args
+
+def extract_update_args(command_str, method):
+    """
+    Extracts and loads the arguments for updateOne or updateMany operations.
+    Supports 2 or 3 arguments.
+    """
+    match = re.search(rf'{method}\((.*)\)', command_str, re.DOTALL)
+    raw_args = match.group(1)
+    parts = split_args(raw_args)
+    if len(parts) == 2:
+        return loads(parts[0]), loads(parts[1])
+    elif len(parts) == 3:
+        return loads(parts[0]), loads(parts[1]), loads(parts[2])
+    else:
+        raise ValueError("Invalid arguments for update operation")
+
+def mongo_shell_to_json(s):
+    # Replace keys like age: -> "age":
+    s = re.sub(r'([{,]\s*)(\w+)(\s*:\s*)', r'\1"\2"\3', s)
+    # Replace $gt, $lt etc.: $gt -> "$gt"
+    s = re.sub(r'(\s*)(\$[a-zA-Z]+)(\s*:\s*)', r'\1"\2"\3', s)
+    return s
 
 if __name__ == '__main__':
-    app.run(debug=True, port=3000)
+    app.run(debug=True)
