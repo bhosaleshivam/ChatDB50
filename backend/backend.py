@@ -25,33 +25,29 @@ mongo_uri = "mongodb+srv://anishnehete:dsci551@cluster1.ufmq4xd.mongodb.net/?ret
 mongo_client = MongoClient(mongo_uri)
 mongo_db = mongo_client['sample_mflix']  # Use your DB name
 
-@app.route('/query', methods=['POST'])
+@app.route('/querySQL', methods=['POST'])
+def handle_query_mysql():
+    data = request.get_json()
+    user_query = data.get('query', '').strip()
+    
+    try:
+        with mysql_conn.cursor() as cursor:
+            cursor.execute(user_query)
+            results = cursor.fetchall()
+            return jsonify(results)
+        
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/queryNoSQL', methods=['POST'])
 def handle_query():
     data = request.get_json()
     user_query = data.get('query', '').strip()
     
     try:
-
-        with mysql_conn.cursor() as cursor:
-            cursor.execute(user_query)
-            results = cursor.fetchall()
-            return jsonify(results)
-
-        if user_query.lower().startswith('mysql'):
-            sql = user_query[len('mysql'):].strip()
-            with mysql_conn.cursor() as cursor:
-                cursor.execute(sql)
-                if cursor.description:
-                    result = cursor.fetchall()
-                    return jsonify(result)
-                else:
-                    return jsonify({
-                        "message": "Query executed successfully.",
-                        "affected_rows": cursor.rowcount
-                    })
-
         # ✅ Handle MongoDB queries
-        elif user_query.lower().startswith('mongo'):
+        if user_query.lower().startswith('mongo'):
             raw = user_query[len('mongo'):].strip()
             if raw.startswith('db.'):
                 match = re.match(r'db\.(\w+)\.(\w+)\((.+)\)', raw)

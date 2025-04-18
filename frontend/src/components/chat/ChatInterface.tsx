@@ -2,7 +2,8 @@ import { Separator } from "../ui/separator";
 import { ChatInput } from "./ChatInput";
 import { MessageBubble, MessageType } from "./MessageBubble";
 import { useState, useRef, useEffect } from "react";
-import { queryLLM } from "./queryLLM";
+import { stringContainsSQL, stringContainsNoSQL } from "../../utils/patternMatcher";
+import { querySQLExecuter, queryLLM, queryNoSQLExecuter } from "../../utils/queryExecuter";
 
 const initialMessages: MessageType[] = [
   {
@@ -38,9 +39,37 @@ export function ChatInterface() {
     setMessages((prev) => [...prev, userMessage]);
     setLoading(true);
 
+    // Contains both sql & nosql in input
+    if (stringContainsSQL(content) && stringContainsNoSQL(content)) {
+      const aiMessage: MessageType = {
+        id: Date.now().toString(),
+        content: "I can perform operations on MongoDB/NoSQL or MySQL/SQL one at a time :). Let me know which one do you want to go first",
+        sender: "ai",
+        timestamp: new Date(),
+      };
+    
+      setMessages((prev) => [...prev, aiMessage]);
+      setLoading(false);
+      return; // Colon removed
+    }
+
+    // Contains no keyword sql or nosql in input
+    if (!(stringContainsSQL(content) || stringContainsNoSQL(content))) {
+      const aiMessage: MessageType = {
+        id: Date.now().toString(),
+        content: "We have a MongoDB database and a MySQL database. Please explicitly mention MongoDB/NoSQL or MySQL/SQL to perform any operations :)",
+        sender: "ai",
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+      setLoading(false);
+      return;
+    };
+
     const aiMessage: MessageType = {
       id: Date.now().toString(),
-      content: "Generating your query...",
+      content: "Working on your query...",
       sender: "ai",
       timestamp: new Date(),
     };
@@ -64,29 +93,6 @@ export function ChatInterface() {
     }, 3000);
   };
 
-  const executeQuery = async (queryMessage: string): Promise<any> => {
-    try {
-      const response = await fetch("http://127.0.0.1:3000/query", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ query: queryMessage }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      const data = await response.json();
-      console.log("Response from backend:", data);
-      return data;
-    } catch (error) {
-      console.error("Fetch error:", error);
-      return { error: String(error) };
-    }
-  };
-
   const handleQuery = async (queryMessage: string): Promise<string> => {
     const generatedQuery = await queryLLM(queryMessage);
 
@@ -99,23 +105,15 @@ export function ChatInterface() {
 
     setMessages((prev) => [...prev, aiMessage]);
 
-    const result = await executeQuery(generatedQuery);
+    let result;
+    if (stringContainsSQL(queryMessage)) {
+      result = await querySQLExecuter(generatedQuery);
+    } else {
+      result = await queryNoSQLExecuter(generatedQuery);
+    }
+    
     console.log(result);
     return typeof result === "string" ? result : JSON.stringify(result);
-  };
-
-  // Simple response generator - would be replaced with actual AI in a real app
-  const getAIResponse = (message: string): string => {
-    const responses = [
-      "I understand you're saying: " + message,
-      "That's interesting. Tell me more about " + message,
-      "I'm processing your message: " + message,
-      "Thank you for sharing that with me.",
-      "I'm here to help with any questions you might have.",
-      "That's a great point you've raised.",
-    ];
-
-    return responses[Math.floor(Math.random() * responses.length)];
   };
 
   return (

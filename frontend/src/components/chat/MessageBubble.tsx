@@ -40,7 +40,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               : "bg-chat-ai-bubble text-chat-ai-text rounded-tl-none"
           )}
         >
-          <p className="whitespace-pre-wrap break-words">{message.content}</p>
+          <p className="whitespace-pre-wrap break-words text-left">{message.content}</p>
         </div>
         <span className={cn(
           "text-xs text-chat-timestamp mt-1",
