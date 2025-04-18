@@ -4,6 +4,7 @@ import { MessageBubble, MessageType } from "./MessageBubble";
 import { useState, useRef, useEffect } from "react";
 import { stringContainsSQL, stringContainsNoSQL } from "../../utils/patternMatcher";
 import { querySQLExecuter, queryLLM, queryNoSQLExecuter } from "../../utils/queryExecuter";
+import { jsonToTableString } from "../../utils/jsonToTableString";
 
 const initialMessages: MessageType[] = [
   {
@@ -111,9 +112,8 @@ export function ChatInterface() {
     } else {
       result = await queryNoSQLExecuter(generatedQuery);
     }
-    
-    console.log(result);
-    return typeof result === "string" ? result : JSON.stringify(result);
+
+    return typeof result === "string" ? result : jsonToTableString(result.data);
   };
 
   return (
