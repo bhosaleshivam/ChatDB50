@@ -1,0 +1,25 @@
+X 1. sql What tables are there in the employees database?
+-> show tables;
+
+X 2. sql Show me the columns in the employees table.
+-> SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'employees';
+
+3. sql Give me 5 rows from the salaries table.
+-> SELECT * FROM salaries LIMIT 5;
+
+X 4. sql List all the attributes in the titles table.
+-> SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'titles';
+
+5. sql What does the dept_manager table look like?
+-> SELECT * FROM dept_manager;
+
+6. sql Show top 5 employees alphabetical order hired before year 1990. The column name is hire_date
+-> SELECT * FROM employees WHERE hire_date < '1990-01-01' ORDER BY first_name, last_name LIMIT 5;
+
+7. sql Get all salary records for employee number 10001 from the salaries table, the column name is emp_no
+-> SELECT * FROM salaries WHERE emp_no = 10001;
+
+X 8. sql What titles does employee 10001 have? The column name of employee id is emp_no, table name is "titles"
+-> SELECT title FROM titles WHERE emp_no = 10001;
+
+9. 

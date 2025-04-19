@@ -3,7 +3,7 @@ import { ChatInput } from "./ChatInput";
 import { MessageBubble, MessageType } from "./MessageBubble";
 import { useState, useRef, useEffect } from "react";
 import { stringContainsSQL, stringContainsNoSQL } from "../../utils/patternMatcher";
-import { querySQLExecuter, queryLLM, queryNoSQLExecuter, collectionCache } from "../../utils/queryExecuter";
+import { querySQLExecuter, queryLLM, queryNoSQLExecuter } from "../../utils/queryExecuter";
 import { jsonToTableString } from "../../utils/jsonToTableString";
 
 const initialMessages: MessageType[] = [
@@ -95,7 +95,15 @@ export function ChatInterface() {
   };
 
   const handleQuery = async (queryMessage: string): Promise<string> => {
-    const generatedQuery = await queryLLM(queryMessage);
+    let generatedQuery;
+    if (stringContainsSQL(queryMessage)) {
+      const sqlCache = await querySQLExecuter("db.getCollectionNames()");
+      generatedQuery = await queryLLM(queryMessage, sqlCache);
+    } else {
+      const mongoCache = await queryNoSQLExecuter("db.getCollectionNames()");
+      console.log("mongoCache: ", mongoCache)
+      generatedQuery = await queryLLM(queryMessage, mongoCache);
+    }
 
     const aiMessage: MessageType = {
       id: Date.now().toString(),
@@ -112,7 +120,6 @@ export function ChatInterface() {
       console.log("result: ", result)
       return jsonToTableString(result.data);
     } else {
-      collectionCache.names = await queryNoSQLExecuter("db.getCollectionNames()");
       result = await queryNoSQLExecuter(generatedQuery);
       return JSON.stringify(result);
     }

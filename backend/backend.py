@@ -15,7 +15,7 @@ mysql_conn = pymysql.connect(
     host='localhost',
     user='root',
     password='MySQL@1234',
-    database='demo',
+    database='employees',
     cursorclass=pymysql.cursors.DictCursor,
     autocommit=True
 )
