@@ -1,4 +1,4 @@
-1. sql What tables are there in the employees database?
+1. sql What are the table names in the employee database
 -> SELECT table_name FROM information_schema.tables WHERE table_schema = 'employees';
 
 2. sql Show me all the column names in the salaries table.
@@ -7,49 +7,33 @@
 3. sql Give me a few sample rows from the salaries table.
 -> SELECT * FROM salaries LIMIT 10;
 
-4. sql What does the dept_manager table look like?
--> SELECT * FROM dept_manager;
-
-6. sql Show last 5 employees data hired before year 1990.
--> SELECT * from employees WHERE hire_date < '1990-01-01' LIMIT 5;
-
-7. sql Get all salary records for employee number 10001
--> SELECT * FROM salaries WHERE emp_no = 10001;
-
-8. sql What titles does employee 10001 have?
--> SELECT title FROM titles WHERE emp_no = 10001;
-
-9. sql List all department managers and their departments.
--> 
-SELECT `employees`.`emp_no`, `departments`.`dept_name`
-FROM `dept_manager`
-JOIN `employees` ON `dept_manager`.`emp_no` = `employees`.`emp_no`
-JOIN `departments` ON `dept_manager`.`dept_no` = `departments`.`dept_no`;
-
-10. sql List the first and last names of employees hired after January 1st, 1990.
+4. sql Show first name and last name of first 5 employees data hired before year 1990.
 -> SELECT first_name, last_name
 FROM employees
-WHERE hire_date > '1990-01-01'
-LIMIT 10;
+WHERE hire_date < '1990-01-01'
+LIMIT 5;
 
-X 11. sql Get the number of employees in each department.
+5. sql Get all salary records for employee number 10001
+-> SELECT * FROM salaries WHERE emp_no = 10001;
 
-X 12. What is the average salary per department?
+6. sql What titles does employee 10001 have?
+-> SELECT title FROM titles WHERE emp_no = 10001;
 
-13. sql Show me 5 employees with the title ‘Senior Engineer’
+7. sql List all department managers and their departments.
+-> 
+SELECT employees.last_name, employees.first_name, departments.dept_name
+FROM employees
+JOIN dept_manager ON employees.emp_no = dept_manager.emp_no
+JOIN departments ON dept_manager.dept_no = departments.dept_no;
+
+8. sql Show me 5 employees with the title ‘Senior Engineer’
 -> SELECT employees.emp_no, employees.first_name, employees.last_name
 FROM employees
 JOIN titles ON employees.emp_no = titles.emp_no
 WHERE titles.title = 'Senior Engineer'
 LIMIT 5;
 
-X 14. Show top 5 highest salaries given in the company.
-
-~ 15. Show employees whose first name starts with ‘G’, ordered by hire date.
-
-X 16. List the departments that have more than 10 employees.
-
-17. List the first 10 employees hired after 1990, skipping the first 5.
+9. List the first 10 employees hired after 1990, skipping the first 5.
 -> SELECT employees.emp_no, employees.first_name, employees.last_name
 FROM employees
 JOIN salaries ON employees.emp_no = salaries.emp_no
@@ -57,6 +41,14 @@ WHERE hire_date > '1990-01-01'
 ORDER BY hire_date
 LIMIT 10 OFFSET 5;
 
-~ 18. sql Get the full name of employees and their department names, skipping 10 entries
+INSERT
+10. sql Add a new employee named John Smith, born on 1995-01-01, hired on 2024-04-01, gender M with employee id 100010002
 
-19. 
+DELETE
+11. sql delete employee id 100010013
+
+UPDATE
+12. sql update employee id 100010011 last name to Williams
+
+13. sql show first name and last name of employee id 100010011
+

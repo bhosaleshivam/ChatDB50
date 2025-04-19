@@ -137,10 +137,18 @@ export function ChatInterface() {
 
     let result;
     if (stringContainsSQL(queryMessage)) {
-      result = await querySQLExecuter(generatedQuery);
-      console.log("result: ", result)
-      return jsonToTableString(result.data);
-    } else {
+      const result = await querySQLExecuter(generatedQuery);
+      console.log("result: ", result);
+    
+      const obj = result.data;
+    
+      if (obj && !('message' in obj) && !('warning' in obj) && !('error' in obj)) {
+        return jsonToTableString(obj);
+      } else {
+        return JSON.stringify(obj);
+      }
+    }
+    else {
       result = await queryNoSQLExecuter(generatedQuery);
       return JSON.stringify(result);
     }

@@ -29,12 +29,21 @@ mongo_db = mongo_client['sample_mflix']  # Use your DB name
 def handle_query_mysql():
     data = request.get_json()
     user_query = data.get('query', '').strip()
+    print("user_query: ", user_query)
     
     try:
         with mysql_conn.cursor() as cursor:
             cursor.execute(user_query)
-            results = cursor.fetchall()
-            return jsonify(results)
+            # If the query is a SELECT statement
+            if user_query.lower().startswith(('select', 'show')):
+                results = cursor.fetchall()
+                return jsonify(results)
+            else:
+                # For INSERT, UPDATE, DELETE — commit the change
+                mysql_conn.commit()
+                if cursor.rowcount == 0:
+                    return jsonify({"warning": "Query executed, but no rows were affected."})
+                return jsonify({"message": f"Query executed successfully. Rows affected: {cursor.rowcount}"})
         
     except Exception as e:
         traceback.print_exc()
