@@ -1,8 +1,13 @@
 import { stringContainsNoSQL } from "./patternMatcher";
 
+
 // queryLLM.tsx
 const OPENROUTER_API_KEY =
   "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";
+
+export const collectionCache = {
+  names: [] as string[],
+};
 
 const PROMPT_SQL = `You are an expert SQL assistant. 
 Convert the following natural language request into a valid SQL query. 
@@ -12,7 +17,8 @@ keyword like SELECT, INSERT, UPDATE, DELETE, etc. Natural language request: `
 
 const PROMPT_NOSQL = `You are an expert MongoDB assistant. 
 Convert the following natural language request into a valid MongoDB query using the appropriate collection methods 
-like find, insertOne, updateOne, deleteOne, aggregate, etc. 
+like find, insertOne, updateOne, deleteOne, aggregate, etc.
+We have the following collections in our MongoDB database ${collectionCache.names}
 Respond with ONLY the MongoDB query—do NOT include explanations, assumptions, 
 formatting like code blocks, or additional text. The response must start with a valid MongoDB method. 
 Natural language request: `
@@ -23,8 +29,6 @@ export const queryLLM = async (naturalQuery: string): Promise<string> => {
     stringContainsNoSQL(naturalQuery)
       ? PROMPT_NOSQL + naturalQuery
       : PROMPT_SQL + naturalQuery;
-
-  console.log(prompt)
 
   try {
     const response = await fetch(
@@ -49,7 +53,7 @@ export const queryLLM = async (naturalQuery: string): Promise<string> => {
       }
     );
 
-    console.log("response: ", response);
+    console.log("prompt: ", prompt);
 
     const data = await response.json();
     const fullResponse = data?.choices?.[0]?.message?.content?.trim();
@@ -75,7 +79,6 @@ export const queryLLM = async (naturalQuery: string): Promise<string> => {
         .trim() ||
       fullResponse;
 
-    console.log("extractedQuery: ", extractedQuery)
     return extractedQuery;
   } catch (err) {
     console.error("LLM query error:", err);
@@ -86,7 +89,7 @@ export const queryLLM = async (naturalQuery: string): Promise<string> => {
 
 export const querySQLExecuter = async (queryMessage: string): Promise<any> => {
     try {
-        const response = await fetch("http://127.0.0.1:3000/querySQL", {
+        const response = await fetch("http://127.0.0.1:5000/querySQL", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -108,8 +111,9 @@ export const querySQLExecuter = async (queryMessage: string): Promise<any> => {
 };
 
 export const queryNoSQLExecuter = async (queryMessage: string): Promise<any> => {
+    console.log("collectionCache.names: ", collectionCache.names);
     try {
-        const response = await fetch("http://127.0.0.1:3000/queryNoSQL", {
+        const response = await fetch("http://127.0.0.1:5000/queryNoSQL", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

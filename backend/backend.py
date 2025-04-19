@@ -10,7 +10,7 @@ import re
 app = Flask(__name__)
 CORS(app)
 
-# ✅ MySQL connection
+# MySQL connection
 mysql_conn = pymysql.connect(
     host='localhost',
     user='root',
@@ -20,7 +20,7 @@ mysql_conn = pymysql.connect(
     autocommit=True
 )
 
-# ✅ MongoDB Atlas connection
+# MongoDB Atlas connection
 mongo_uri = "mongodb+srv://anishnehete:dsci551@cluster1.ufmq4xd.mongodb.net/?retryWrites=true&w=majority"
 mongo_client = MongoClient(mongo_uri)
 mongo_db = mongo_client['sample_mflix']  # Use your DB name

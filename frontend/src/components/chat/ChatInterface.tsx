@@ -3,7 +3,7 @@ import { ChatInput } from "./ChatInput";
 import { MessageBubble, MessageType } from "./MessageBubble";
 import { useState, useRef, useEffect } from "react";
 import { stringContainsSQL, stringContainsNoSQL } from "../../utils/patternMatcher";
-import { querySQLExecuter, queryLLM, queryNoSQLExecuter } from "../../utils/queryExecuter";
+import { querySQLExecuter, queryLLM, queryNoSQLExecuter, collectionCache } from "../../utils/queryExecuter";
 import { jsonToTableString } from "../../utils/jsonToTableString";
 
 const initialMessages: MessageType[] = [
@@ -109,8 +109,10 @@ export function ChatInterface() {
     let result;
     if (stringContainsSQL(queryMessage)) {
       result = await querySQLExecuter(generatedQuery);
+      console.log("result: ", result)
       return jsonToTableString(result.data);
     } else {
+      collectionCache.names = await queryNoSQLExecuter("db.getCollectionNames()");
       result = await queryNoSQLExecuter(generatedQuery);
       return JSON.stringify(result);
     }
