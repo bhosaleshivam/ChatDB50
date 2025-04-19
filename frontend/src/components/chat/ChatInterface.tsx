@@ -97,8 +97,29 @@ export function ChatInterface() {
   const handleQuery = async (queryMessage: string): Promise<string> => {
     let generatedQuery;
     if (stringContainsSQL(queryMessage)) {
-      const sqlCache = await querySQLExecuter("db.getCollectionNames()");
-      generatedQuery = await queryLLM(queryMessage, sqlCache);
+      const sqlCache = await querySQLExecuter("show tables");
+      // const parsedData = JSON.parse(sqlCache);
+      const tableNames = sqlCache.data.map(
+        (item: { Tables_in_employees: string }) => item.Tables_in_employees
+      );
+      console.log("tableNames: ", tableNames)
+      const databaseSchema: Record<string, string[]> = {};
+      for (const tableName of tableNames) {
+        const columnsResult = await querySQLExecuter(`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = '${tableName}'
+          ORDER BY ordinal_position
+        `);
+        console.log("columnsResult: ", columnsResult)
+        const columns = columnsResult.data.map(
+          (item: { COLUMN_NAME: string }) => item.COLUMN_NAME
+        );
+        databaseSchema[tableName] = columns;
+        console.log(`Fetched columns for ${tableName}:`, columns);
+      }
+
+      generatedQuery = await queryLLM(queryMessage, databaseSchema);
     } else {
       const mongoCache = await queryNoSQLExecuter("db.getCollectionNames()");
       console.log("mongoCache: ", mongoCache)

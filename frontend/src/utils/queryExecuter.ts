@@ -6,10 +6,12 @@ const OPENROUTER_API_KEY =
   "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";
 
 const PROMPT_SQL = `You are an expert SQL assistant. 
-Convert the following natural language request into a valid SQL query. 
+Convert the following natural language request into a valid logical SQL query using
+SELECT, FROM, JOIN, GROUP BY, HAVING, ORDER BY, LIMIT, DELETE, UPDATE. 
 Respond with ONLY the SQL query—do NOT include explanations, assumptions, 
-formatting like code blocks, or additional text. The response must start with a valid SQL 
-keyword like SELECT, INSERT, UPDATE, DELETE, etc.`
+formatting like code blocks, or additional text.
+If attributes or column names is asked return a query that selects COLUMN_NAME from the information schema of the specified table.
+The current database selected is "employees" database. `
 
 const PROMPT_NOSQL = `You are an expert MongoDB assistant. 
 Convert the following natural language request into a valid MongoDB query using the appropriate collection methods 
@@ -20,11 +22,14 @@ formatting like code blocks, or additional text. The response must start with a 
 export const queryLLM = async (naturalQuery: string, cache: object): Promise<string> => {
 
   const prompt =
-    (stringContainsNoSQL(naturalQuery) ? PROMPT_NOSQL : PROMPT_SQL) +
-    " Natural language request: " +
-    naturalQuery +
-    ". The database has following data: " +
-    JSON.stringify(cache);
+    (stringContainsNoSQL(naturalQuery)
+      ? PROMPT_NOSQL +
+        ". The database has following tables and columns (Make logical queries using this knowledge): "
+      : PROMPT_SQL +
+        ". The database has following collection names (Make logical queries using this knowledge): ") +
+    JSON.stringify(cache) +
+    ". Natural language request: " +
+    naturalQuery;
 
   console.log("prompt: ", prompt);
 
@@ -47,6 +52,8 @@ export const queryLLM = async (naturalQuery: string, cache: object): Promise<str
               content: prompt,
             },
           ],
+          temperature: 0.7,
+          seed: Date.now(), // Unique per call
         }),
       }
     );
