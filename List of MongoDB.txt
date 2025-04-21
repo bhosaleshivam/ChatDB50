@@ -60,8 +60,14 @@
     { $project: { _id: 1, movie_id: 1, comments: 1 } }
 ])
 
+9. mongodb find me 5 users after skipping the first 5 users
+-> db.users.find().skip(5).limit(5)
+
 INSERT
-9. mongodb Add multiple new theaters in LA and NY
+10. mongodb Add a new user named Shivam Bhosale with email shivam@gmail.com and password dsci551.
+-> db.users.insertOne({ name: "Shivam Bhosale", email: "shivam@gmail.com", password: "dsci551" })
+
+11. mongodb Add multiple new theaters in LA and NY
 -> db.theaters.insertMany([
   { city: "LA", name: "Theater1" },
   { city: "LA", name: "Theater2" },
@@ -70,11 +76,11 @@ INSERT
 ]);
 
 UPDATE
-10. mongodb update the city of theater name "Theater1" to "NY"
+12. mongodb update the city of theater name "Theater1" to "NY"
 -> db.theaters.updateOne({ name: "Theater1" }, { $set: { city: "NY" } });
 
 DELETE
-11. mongodb delete entry with location NY
+13. mongodb delete entry with location NY
 -> db.comments.deleteOne({ "name": "Alliser Thorne" })
 
-mongodb show details about theaters with name Theater1
+14. mongodb show details about theaters with name Theater1

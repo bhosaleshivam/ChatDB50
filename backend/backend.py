@@ -66,11 +66,11 @@ def handle_query_nosql():
         if raw.lower() == "show collections" or raw.strip().lower() == "db.getcollectionnames()":
             collections = mongo_db.list_collection_names()
             return jsonify({"collections": collections})
-        match = re.match(r'db\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\((.*)\)', raw, re.DOTALL)
+        match = re.match(r'db\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\((.*?)\)(?:\.skip\((\d+)\))?(?:\.limit\((\d+)\))?', raw, re.DOTALL)
         if not match:
             return jsonify({"error": "Invalid MongoDB command format."}), 400
 
-        collection_name, command, args_str = match.groups()
+        collection_name, command, args_str, skip_str, limit_str = match.groups()
         collection = mongo_db[collection_name]
 
         print(">>> Collection:", collection_name)
@@ -87,6 +87,10 @@ def handle_query_nosql():
 
         if command == "find":
             cursor = collection.find(*args)
+            if skip_str:
+                cursor = cursor.skip(int(skip_str))
+            if limit_str:
+                cursor = cursor.limit(int(limit_str))
             return app.response_class(response=dumps(cursor), mimetype='application/json')
         elif command == "findOne":
             result = collection.find_one(*args)

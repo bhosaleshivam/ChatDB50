@@ -41,14 +41,28 @@ WHERE hire_date > '1990-01-01'
 ORDER BY hire_date
 LIMIT 10 OFFSET 5;
 
+10. sql List the number of employees by job title.
+-> SELECT titles.title, COUNT(titles.emp_no)
+FROM titles
+GROUP BY titles.title;
+
+11. sql List the number of employees by job title with less than 500 employees
+-> SELECT `titles`.`title`, COUNT(`titles`.`emp_no`) as employee_count
+FROM `titles`
+JOIN `employees` ON `titles`.`emp_no` = `employees`.`emp_no`
+JOIN `salaries` ON `employees`.`emp_no` = `salaries`.`emp_no`
+GROUP BY `titles`.`title`
+HAVING COUNT(`titles`.`emp_no`) < (SELECT COUNT(`emp_no`) FROM `employees`) / 500
+ORDER BY COUNT(`titles`.`emp_no`) DESC;
+
 INSERT
-10. sql insert new entry of a new employee named John Smith, born on 1995-01-01, hired on 2024-04-01, gender M with employee id 100010100
+12. sql insert new entry of a new employee named John Smith, born on 1995-01-01, hired on 2024-04-01, gender M with employee id 100010100
 
 DELETE
-11. sql delete employee id 100010100
+13. sql delete employee id 100010100
 
 UPDATE
-12. sql update employee id 100010100 last name to Williams
+14. sql update employee id 100010100 last name to Williams
 
-13. sql show first name and last name of employee id 100010100
+15. sql show first name and last name of employee id 100010100
 
