@@ -14,8 +14,8 @@ CORS(app)
 mysql_conn = pymysql.connect(
     host='localhost',
     user='root',
-    password='MySQL@1234',
-    database='employees',
+    password='1234',
+    database='world',
     cursorclass=pymysql.cursors.DictCursor,
     autocommit=True
 )
@@ -89,6 +89,9 @@ def handle_query_nosql():
         if command == "find":
             cursor = collection.find(*args)
             return app.response_class(response=dumps(cursor), mimetype='application/json')
+        elif command == "findOne":
+            result = collection.find_one(*args)
+            return app.response_class(response=dumps(result), mimetype='application/json')
         
         elif command == "aggregate":
             cursor = collection.aggregate(*args)
