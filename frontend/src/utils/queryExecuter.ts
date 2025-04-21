@@ -17,7 +17,7 @@ const PROMPT_NOSQL = `You are an expert MongoDB assistant.
 Convert the following natural language request into a valid MongoDB query using the appropriate collection methods 
 like find, insertOne, updateOne, deleteOne, aggregate, etc.
 Respond with ONLY the MongoDB query—do NOT include explanations, assumptions, 
-formatting like code blocks, or additional text. The response must start with a valid MongoDB method.`
+formatting like code blocks, or additional text. The response must start with a valid MongoDB method (db...) `
 
 export const queryLLM = async (naturalQuery: string, cache: object): Promise<string> => {
 
@@ -52,7 +52,7 @@ export const queryLLM = async (naturalQuery: string, cache: object): Promise<str
               content: prompt,
             },
           ],
-          temperature: 0.7,
+          temperature: 0.2,
           seed: Date.now(), // Unique per call
         }),
       }

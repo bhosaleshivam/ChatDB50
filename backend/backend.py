@@ -14,8 +14,8 @@ CORS(app)
 mysql_conn = pymysql.connect(
     host='localhost',
     user='root',
-    password='1234',
-    database='world',
+    password='MySQL@1234',
+    database='employees',
     cursorclass=pymysql.cursors.DictCursor,
     autocommit=True
 )
@@ -54,6 +54,7 @@ def handle_query_mysql():
 def handle_query_nosql():
     data = request.get_json()
     user_query = data.get('query', '').strip()
+    user_query = user_query.replace("`","")
 
     try:
         print(">>> Received query:", user_query)

@@ -1,4 +1,4 @@
-X 1. mongodb what collections names exists in my database
+1. mongodb what collections names exists in my database
 -> db.getCollectionNames()
 
 X 2. mongodb Show me a sample document from the movies collection.
@@ -54,7 +54,7 @@ X 14. mongodb Add a new user named Arya Stark with email arya@winterfell.com and
 -> db.users.insertOne({ name: "Arya Stark", email: "arya@winterfell.com", password: "needle123" });
 
 INSERT
-15. Add multiple new theaters in LA and NY
+15. mongodb Add multiple new theaters in LA and NY
 -> db.theaters.insertMany([
   { city: "LA", name: "Theater1" },
   { city: "LA", name: "Theater2" },
@@ -64,10 +64,10 @@ INSERT
 
 UPDATE
 16. mongodb update the city of theater name "Theater1" to "NY"
--> db.users.updateOne({ name: "Theon Greyjoy" }, { $set: { email: "theon_greyjoy@ironislands.com" } })
+-> db.theaters.updateOne({ name: "Theater1" }, { $set: { city: "NY" } });
 
 DELETE
 17. mongodb delete one comment by Alliser Thorne, it's in key "name"
--> db.comments.deleteOne({ _id: ObjectId("5a9427648b0beebeb6957a21") })
+-> db.comments.deleteOne({ "name": "Alliser Thorne" })
 
 mongodb show details about theaters with name Theater1
