@@ -1,60 +1,67 @@
 1. mongodb what collections names exists in my database
 -> db.getCollectionNames()
 
-X 2. mongodb Show me a sample document from the movies collection.
+2. mongodb Show me a sample document from the movies collection.
 -> db.movies.findOne()
 
 3. mongodb Give me a preview of what’s inside the users collection.
 -> db.users.find()
 
-X 4. mongodb Find the title and genres of all movies released after 2000.
--> db.movies.find({ released: { $gt: 2000 }, fields: { title: 1, genres: 1 })
-
-5. mongodb List the names and emails of all users.
+4. mongodb List the names and emails of all users.
 -> db.users.find({}, {"name": 1, "email": 1})
 
-7. mongodb What are the top 5 most common genres of movies?
+5. mongodb What are the top 5 most common genres of movies?
 -> db.movies.aggregate([
   { $group: { _id: "$genre", count: { $sum: 1 } } },
   { $sort: { count: -1 } },
   { $limit: 5 }
 ])
 
-X 8. mongodb Give me the average IMDb rating for each genre.
--> db.movies.aggregate([
-  { $group: { _id: "$genre", averageRating: { $avg: "$IMDb.rating" } }
-])
-
-X 9. mongodb Show me the 3 most recent comments.
--> db.comments.find().sort({_id: -1}).limit(3)
-
-10. mongodb Count how many movies are available for each language.
+6. mongodb Count how many movies are available for each language.
 -> db.movies.aggregate([
     { $group: { _id: "$language", total: { $sum: 1 } } }
 ])
 
-X 11. mongodb Skip the first 5 users and show the next 5.
--> db.users.find().sort({ _id: 1 }).skip(5).limit(5)
-
-X 12. mongodb Show me each comment along with the title of the movie it refers to.
-
-X 13. mongodb List users with comments they’ve made.
--> db.users.aggregate([
-  {
-    $lookup: {
-      from: "comments",
-      localField: "_id",
-      foreignField: "user_id",
-      as: "comments"
+7. mongodb Show me 10 comments along with the title of the movie it refers to.
+-> db.comments.aggregate([
+    {
+        $lookup: {
+            from: "movies",
+            localField: "movie_id",
+            foreignField: "_id",
+            as: "movie"
+        }
+    },
+    {
+        $project: {
+            _id: 1,
+            content: 1,
+            "movie.title": 1
+        }
+    },
+    {
+        $limit: 10
     }
-  }
-]);
+])
 
-X 14. mongodb Add a new user named Arya Stark with email arya@winterfell.com and password ‘needle123’.
--> db.users.insertOne({ name: "Arya Stark", email: "arya@winterfell.com", password: "needle123" });
+8. mongodb Show each movie_id with all the comments it has received. Limit to 3 results.
+-> db.movies.aggregate([
+    {
+        $lookup: {
+            from: "comments",
+            localField: "_id",
+            foreignField: "movie_id",
+            as: "comments"
+        }
+    },
+    { $unwind: "$comments" },
+    { $match: { _id: { $exists: true } } },
+    { $limit: 3 },
+    { $project: { _id: 1, movie_id: 1, comments: 1 } }
+])
 
 INSERT
-15. mongodb Add multiple new theaters in LA and NY
+9. mongodb Add multiple new theaters in LA and NY
 -> db.theaters.insertMany([
   { city: "LA", name: "Theater1" },
   { city: "LA", name: "Theater2" },
@@ -63,11 +70,11 @@ INSERT
 ]);
 
 UPDATE
-16. mongodb update the city of theater name "Theater1" to "NY"
+10. mongodb update the city of theater name "Theater1" to "NY"
 -> db.theaters.updateOne({ name: "Theater1" }, { $set: { city: "NY" } });
 
 DELETE
-17. mongodb delete one comment by Alliser Thorne, it's in key "name"
+11. mongodb delete entry with location NY
 -> db.comments.deleteOne({ "name": "Alliser Thorne" })
 
 mongodb show details about theaters with name Theater1

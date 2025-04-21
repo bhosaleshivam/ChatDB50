@@ -14,8 +14,8 @@ CORS(app)
 mysql_conn = pymysql.connect(
     host='localhost',
     user='root',
-    password='1234',
-    database='world',
+    password='MySQL@1234',
+    database='employees',
     cursorclass=pymysql.cursors.DictCursor,
     autocommit=True
 )
@@ -32,7 +32,6 @@ def handle_query_mysql():
     print("user_query: ", user_query)
     
     try:
-        print(mysql_conn.admin.command('ping'))
         with mysql_conn.cursor() as cursor:
             cursor.execute(user_query)
             # If the query is a SELECT statement

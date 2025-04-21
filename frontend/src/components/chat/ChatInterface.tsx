@@ -140,6 +140,10 @@ export function ChatInterface() {
       const result = await querySQLExecuter(generatedQuery);
       console.log("result: ", result);
     
+      if('error' in result){
+        return JSON.stringify(result);
+      }
+      
       const obj = result.data;
     
       if (obj && !('message' in obj) && !('warning' in obj) && !('error' in obj)) {

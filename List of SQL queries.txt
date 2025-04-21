@@ -33,7 +33,7 @@ JOIN titles ON employees.emp_no = titles.emp_no
 WHERE titles.title = 'Senior Engineer'
 LIMIT 5;
 
-9. sql List the first 10 employees hired after 1990, skipping the first 5.
+9. sql List unique first 10 employees hired after 1990, skipping the first 5.
 -> SELECT employees.emp_no, employees.first_name, employees.last_name
 FROM employees
 JOIN salaries ON employees.emp_no = salaries.emp_no
