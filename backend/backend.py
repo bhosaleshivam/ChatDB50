@@ -14,8 +14,8 @@ CORS(app)
 mysql_conn = pymysql.connect(
     host='localhost',
     user='root',
-    password='MySQL@1234',
-    database='employees',
+    password='1234',
+    database='world',
     cursorclass=pymysql.cursors.DictCursor,
     autocommit=True
 )
@@ -63,7 +63,9 @@ def handle_query_nosql():
 
         if not raw.startswith('db.'):
             return jsonify({"error": "Query must start with db.collection.command(...)"}), 400
-
+        if raw.lower() == "show collections" or raw.strip().lower() == "db.getcollectionnames()":
+            collections = mongo_db.list_collection_names()
+            return jsonify({"collections": collections})
         match = re.match(r'db\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\((.*)\)', raw, re.DOTALL)
         if not match:
             return jsonify({"error": "Invalid MongoDB command format."}), 400
@@ -86,11 +88,11 @@ def handle_query_nosql():
         if command == "find":
             cursor = collection.find(*args)
             return app.response_class(response=dumps(cursor), mimetype='application/json')
-
+        
         elif command == "aggregate":
             cursor = collection.aggregate(*args)
             return app.response_class(response=dumps(cursor), mimetype='application/json')
-
+    
         elif command == "insertOne":
             result = collection.insert_one(*args)
             return jsonify({"message": "Inserted", "inserted_id": str(result.inserted_id)})
@@ -106,7 +108,7 @@ def handle_query_nosql():
                 "matched_count": result.matched_count,
                 "modified_count": result.modified_count
             })
-
+        
         elif command == "updateMany":
             result = collection.update_many(*args)
             return jsonify({
