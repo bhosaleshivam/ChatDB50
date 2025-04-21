@@ -1,7 +1,7 @@
-1. mongodb what collections names exists in my database
+X 1. mongodb what collections names exists in my database
 -> db.getCollectionNames()
 
-2. mongodb Show me a sample document from the movies collection.
+X 2. mongodb Show me a sample document from the movies collection.
 -> db.movies.findOne()
 
 3. mongodb Give me a preview of what’s inside the users collection.
@@ -13,10 +13,7 @@ X 4. mongodb Find the title and genres of all movies released after 2000.
 5. mongodb List the names and emails of all users.
 -> db.users.find({}, {"name": 1, "email": 1})
 
-X 6. Show all comment texts and the movie IDs they belong to.
--> db.comments.find({}, { _id: 0, movieId: 1, commentText: 1 })
-
-7. What are the top 5 most common genres of movies?
+7. mongodb What are the top 5 most common genres of movies?
 -> db.movies.aggregate([
   { $group: { _id: "$genre", count: { $sum: 1 } } },
   { $sort: { count: -1 } },
@@ -28,7 +25,7 @@ X 8. mongodb Give me the average IMDb rating for each genre.
   { $group: { _id: "$genre", averageRating: { $avg: "$IMDb.rating" } }
 ])
 
-9. mongodb Show me the 3 most recent comments.
+X 9. mongodb Show me the 3 most recent comments.
 -> db.comments.find().sort({_id: -1}).limit(3)
 
 10. mongodb Count how many movies are available for each language.
@@ -36,13 +33,12 @@ X 8. mongodb Give me the average IMDb rating for each genre.
     { $group: { _id: "$language", total: { $sum: 1 } } }
 ])
 
-11. mongodb Skip the first 5 users and show the next 5.
+X 11. mongodb Skip the first 5 users and show the next 5.
 -> db.users.find().sort({ _id: 1 }).skip(5).limit(5)
 
 X 12. mongodb Show me each comment along with the title of the movie it refers to.
--> db.comments.aggregate([
 
-13. mongodb List users with comments they’ve made.
+X 13. mongodb List users with comments they’ve made.
 -> db.users.aggregate([
   {
     $lookup: {
@@ -54,18 +50,24 @@ X 12. mongodb Show me each comment along with the title of the movie it refers t
   }
 ]);
 
-14. mongodb Add a new user named Arya Stark with email arya@winterfell.com and password ‘needle123’.
+X 14. mongodb Add a new user named Arya Stark with email arya@winterfell.com and password ‘needle123’.
 -> db.users.insertOne({ name: "Arya Stark", email: "arya@winterfell.com", password: "needle123" });
 
-X 15. Add multiple new theaters in LA and NY
+INSERT
+15. Add multiple new theaters in LA and NY
 -> db.theaters.insertMany([
-  { name: 'Theater LA1', location: 'Los Angeles', city: 'Los Angeles' },
-  { name: 'Theater LA2', location: 'Los Angeles', city: 'Los Angeles' },
-  // Add more theaters as needed
-])
+  { city: "LA", name: "Theater1" },
+  { city: "LA", name: "Theater2" },
+  { city: "NY", name: "Theater3" },
+  { city: "NY", name: "Theater4" }
+]);
 
-16. mongodb Update the email of user Theon Greyjoy to theon_greyjoy@ironislands.com.
+UPDATE
+16. mongodb update the city of theater name "Theater1" to "NY"
 -> db.users.updateOne({ name: "Theon Greyjoy" }, { $set: { email: "theon_greyjoy@ironislands.com" } })
 
-X 17. mongodb Delete the comment with id 5a9427648b0beebeb6957a21.
+DELETE
+17. mongodb delete one comment by Alliser Thorne, it's in key "name"
 -> db.comments.deleteOne({ _id: ObjectId("5a9427648b0beebeb6957a21") })
+
+mongodb show details about theaters with name Theater1

@@ -32,6 +32,7 @@ def handle_query_mysql():
     print("user_query: ", user_query)
     
     try:
+        print(mysql_conn.admin.command('ping'))
         with mysql_conn.cursor() as cursor:
             cursor.execute(user_query)
             # If the query is a SELECT statement

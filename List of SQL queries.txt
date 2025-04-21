@@ -1,7 +1,7 @@
 1. sql What are the table names in the employee database
 -> SELECT table_name FROM information_schema.tables WHERE table_schema = 'employees';
 
-2. sql Show me all the column names in the salaries table.
+2. sql Show me all the column names in the "salaries" table.
 -> SELECT column_name FROM information_schema.columns WHERE table_name = 'salaries';
 
 3. sql Give me a few sample rows from the salaries table.
@@ -13,13 +13,13 @@ FROM employees
 WHERE hire_date < '1990-01-01'
 LIMIT 5;
 
-5. sql Get all salary records for employee number 10001
+5. sql for employee number 10001 get all salary records
 -> SELECT * FROM salaries WHERE emp_no = 10001;
 
-6. sql What titles does employee 10001 have?
+6. sql employee number 10001 has what titles?
 -> SELECT title FROM titles WHERE emp_no = 10001;
 
-7. sql List all department managers and their departments.
+7. sql list all department managers and their departments.
 -> 
 SELECT employees.last_name, employees.first_name, departments.dept_name
 FROM employees
@@ -33,7 +33,7 @@ JOIN titles ON employees.emp_no = titles.emp_no
 WHERE titles.title = 'Senior Engineer'
 LIMIT 5;
 
-9. List the first 10 employees hired after 1990, skipping the first 5.
+9. sql List the first 10 employees hired after 1990, skipping the first 5.
 -> SELECT employees.emp_no, employees.first_name, employees.last_name
 FROM employees
 JOIN salaries ON employees.emp_no = salaries.emp_no
@@ -42,13 +42,13 @@ ORDER BY hire_date
 LIMIT 10 OFFSET 5;
 
 INSERT
-10. sql Add a new employee named John Smith, born on 1995-01-01, hired on 2024-04-01, gender M with employee id 100010002
+10. sql insert new entry of a new employee named John Smith, born on 1995-01-01, hired on 2024-04-01, gender M with employee id 100010100
 
 DELETE
-11. sql delete employee id 100010013
+11. sql delete employee id 100010100
 
 UPDATE
-12. sql update employee id 100010011 last name to Williams
+12. sql update employee id 100010100 last name to Williams
 
-13. sql show first name and last name of employee id 100010011
+13. sql show first name and last name of employee id 100010100
 
