@@ -124,7 +124,10 @@ ChatDB50/
 
 ## 💡 Example Usage
 
-* **Input**: `Show me all customers who purchased in January`
+For accessing SQL database, need to specifically add keyword "SQL" (case-insensitive) in the Natural Language Query. Similarly for NoSQL, need to add keyword "NoSQL" or "MongoDB" (case-insensitive)
+
+* **SQL Input**: `SQL Show me all customers who purchased in January`
+* **NoSQL Input**: `NoSQL Show me all customers who purchased in January`
 * **Translated SQL**: `SELECT * FROM purchases WHERE MONTH(purchase_date) = 1`
 * **Translated MongoDB**:
 
