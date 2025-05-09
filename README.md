@@ -1,45 +1,48 @@
-ChatDB50: Natural Language Interface for SQL & NoSQL Databases
+# 💬 ChatDB50: Natural Language Interface for SQL & NoSQL Databases
 
 ChatDB50 is a full-stack web application that allows users to query both SQL and NoSQL (MongoDB) databases using natural language. It leverages a Large Language Model (LLM) to convert user-friendly English queries into executable database-specific queries and presents results in an intuitive format.
 
-✨ Features
+---
 
-Accepts natural language input and converts it to SQL or MongoDB queries
+## 🚀 Key Features
 
-Executes queries on MySQL and MongoDB databases
+* Accepts natural language input and converts it to SQL or MongoDB queries
+* Executes queries on MySQL and MongoDB databases
+* Displays results in a clean, readable format
+* Powered by an LLM API for query translation
 
-Displays results in a clean, readable format
+---
 
-Powered by an LLM API for query translation
-
-🧰 Prerequisites
+## ⚙️ Prerequisites
 
 Ensure the following tools and environments are installed:
 
-1. Python (≥3.8)
+### 1. Python (≥3.8)
 
-Recommended: Use a virtual environment (venv or conda)
+* Recommended: Use a virtual environment (`venv` or `conda`)
 
-2. Node.js & npm (for frontend)
+### 2. Node.js & npm (for frontend)
 
-Download Node.js
+* [Download Node.js](https://nodejs.org/)
 
-3. MongoDB
+### 3. MongoDB
 
-Install MongoDB Community Edition or connect to a cloud MongoDB instance (MongoDB Atlas)
+* Install MongoDB Community Edition or connect to a cloud MongoDB instance ([MongoDB Atlas](https://www.mongodb.com/cloud/atlas))
 
-4. MySQL
+### 4. MySQL
 
-Install MySQL server and create sample database
+* Install MySQL server and create a sample database
 
-5. OpenAI API Key (or other LLM provider)
+### 5. OpenAI API Key (or other LLM provider)
 
-Generate your API key from OpenAI
+* [Generate your API key from OpenAI](https://platform.openai.com/account/api-keys)
+* Save it securely in your backend or config
 
-Save it securely in your backend or config
+---
 
-📁 Project Structure
+## 📁 Project Structure
 
+```
 ChatDB50/
 │
 ├── backend/
@@ -68,71 +71,91 @@ ChatDB50/
 │   └── eslint.config.js
 │
 └── README.md
+```
 
-⚙️ Setup Instructions
+---
 
-🔹 Backend (Flask + LLM)
+## 🛠️ Setup Instructions
 
-Clone the Repository
+### 🐍 Backend (Flask + LLM)
 
-git clone https://github.com/yourusername/chatdb50.git
-cd chatdb50/backend
+1. **Clone the Repository**
 
-Create Virtual Environment
+   ```bash
+   git clone https://github.com/yourusername/chatdb50.git
+   cd chatdb50/backend
+   ```
 
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
+2. **Create Virtual Environment**
 
-Install Dependencies
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # or venv\Scripts\activate on Windows
+   ```
 
-pip install -r requirements.txt
 
-Run Backend
+3. **Run Backend**
 
-python backend.py
+   ```bash
+   python backend.py
+   ```
 
-🔹 Frontend (React + Vite + TailwindCSS)
+### 🖥️ Frontend (React + Vite + TailwindCSS)
 
-Navigate to frontend directory
+1. **Navigate to frontend directory**
 
-cd ../frontend
+   ```bash
+   cd ../frontend
+   ```
 
-Install Dependencies
+2. **Install Dependencies**
 
-npm install
+   ```bash
+   npm install
+   ```
 
-Start the Development Server
+3. **Start the Development Server**
 
-npm run preview
+   ```bash
+   npm run preview
+   ```
 
-🧪 Example Usage
+---
 
-Input: Show me all customers who purchased in January
+## 💡 Example Usage
 
-Translated SQL: SELECT * FROM purchases WHERE MONTH(purchase_date) = 1
+* **Input**: `Show me all customers who purchased in January`
+* **Translated SQL**: `SELECT * FROM purchases WHERE MONTH(purchase_date) = 1`
+* **Translated MongoDB**:
 
-Translated MongoDB:
+  ```json
+  db.purchases.find({ purchase_date: { $gte: ISODate("2023-01-01"), $lt: ISODate("2023-02-01") } })
+  ```
 
-db.purchases.find({ purchase_date: { $gte: ISODate("2023-01-01"), $lt: ISODate("2023-02-01") } })
+---
 
-🤖 Prompt Engineering Tips (for developers)
+## 🧠 Prompt Engineering Tips
 
 If you're customizing prompts for your LLM:
 
+```python
 prompt = f"""
 Convert this natural language request into a {'MongoDB' if db_type == 'mongo' else 'SQL'} query:
 "{user_input}"
 
 Schema hint: {schema_info}
 """
+```
 
-📌 Future Improvements
+---
 
-Add support for voice-based queries
+## 🔮 Future Improvements
 
-User authentication and session-based history
+* Add support for voice-based queries
+* User authentication and session-based history
+* Add support for PostgreSQL, Cassandra, Firebase
+* Fine-tune LLM prompts for improved precision and error handling
 
-Add support for PostgreSQL, Cassandra, Firebase
+---
 
-Fine-tune LLM prompts for improved precision and error handling
-
+---
